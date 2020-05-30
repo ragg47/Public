@@ -1,0 +1,99 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using System.Text.Json;
+using System.Xml.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+namespace serialize
+{
+    class DataSerializer
+    {
+        public void BinarySerialize(object data, string filePath)
+        {
+            FileStream fileStream;
+            BinaryFormatter bf = new BinaryFormatter();
+            if (File.Exists(filePath)) File.Delete(filePath);
+            fileStream = File.Create(filePath);
+            bf.Serialize(fileStream, data);
+            fileStream.Close();
+        }
+
+        public object BinaryDeserialization(string filePath)
+        {
+            object obj = null;
+            FileStream fileStream;
+            BinaryFormatter bf = new BinaryFormatter();
+            if (File.Exists(filePath))
+            {
+                fileStream = File.OpenRead(filePath);
+                obj = bf.Deserialize(fileStream);
+                fileStream.Close();
+            }
+
+            return obj;
+        }
+
+        //XML SERIALIZATION
+
+        public void XmlSerialization(Type datatype, object data, string filePath)
+        {
+            XmlSerializer xmlSerializer = new XmlSerializer(datatype);
+            if (File.Exists(filePath)) File.Delete(filePath);
+            TextWriter textWriter = new StreamWriter(filePath);
+            xmlSerializer.Serialize(textWriter, data);
+            textWriter.Close();
+        }
+        
+        public object XmlDeserialization(Type datatype, string filePath)
+        {
+            object obj = null;
+            XmlSerializer xmlSerializer = new XmlSerializer(datatype);
+            if (File.Exists(filePath))
+            {
+                TextReader textReader = new StreamReader(filePath);
+                obj = xmlSerializer.Deserialize(textReader);
+                textReader.Close();
+            }
+
+
+            return obj;
+
+
+        }
+
+        //JSON
+
+        public void JsonSerializer(object data, string filePath)
+        {
+            Newtonsoft.Json.JsonSerializer json = new Newtonsoft.Json.JsonSerializer();
+            if (File.Exists(filePath)) File.Delete(filePath);
+            StreamWriter streamWriter = new StreamWriter(filePath);
+            JsonWriter jsonWriter = new JsonTextWriter(streamWriter);
+            json.Serialize(jsonWriter, data);
+
+            streamWriter.Close();
+            jsonWriter.Close();
+        }
+
+        public object JsonDeserializer(Type datatype, string filePath)
+        {
+            JObject obj = null;
+            Newtonsoft.Json.JsonSerializer jsonSerializer = new Newtonsoft.Json.JsonSerializer();
+            if (File.Exists(filePath))
+            {
+                StreamReader stream = new StreamReader(filePath);
+                JsonReader jsonReader = new JsonTextReader(stream);
+                obj = jsonSerializer.Deserialize(jsonReader) as JObject;
+                jsonReader.Close();
+                stream.Close();
+                
+            }
+            return obj.ToObject(datatype);
+        }
+
+    }
+}
